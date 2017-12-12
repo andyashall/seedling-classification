@@ -46,8 +46,8 @@ for label in os.listdir(train_path):
       img = image.load_img(train_path + label + '/' + f)
       img = img.resize(size)
       img = np.array(image.img_to_array(img))
-      img = normalize(img)
-      img = just_green(img)
+      img *= 255.0/img.max()
+      img[0,:,0] = 0
       x.append(img)
       y.append(label)
 
