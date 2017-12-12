@@ -10,6 +10,12 @@ from keras.callbacks import EarlyStopping
 import os
 
 # Try removing red and blue from ieach image
+def just_green(arr):
+  arr = arr.astype('float')
+  for i in range(3):
+    arr[0,:,0] = 0
+  print(arr)
+  return arr
 
 def normalize(arr):
   arr = arr.astype('float')
@@ -41,6 +47,7 @@ for label in os.listdir(train_path):
       img = img.resize(size)
       img = np.array(image.img_to_array(img))
       img = normalize(img)
+      img = just_green(img)
       x.append(img)
       y.append(label)
 
