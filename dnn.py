@@ -6,7 +6,7 @@ from keras.preprocessing import image
 from keras.applications.xception import Xception
 from keras.models import Model
 from keras.layers import Dense, Dropout, Flatten
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, LearningRateScheduler, ModelCheckpoint
 import os
 
 train_path = './data/train/'
@@ -33,9 +33,8 @@ for label in os.listdir(train_path):
       img = img.resize(size)
       img = np.array(image.img_to_array(img))
       img *= 255.0/img.max()
-      # img[:,:,0] *= 0
-      # img[:,:,2] *= 0
-      img[0,:,0] = 0
+      img[:,:,0] *= 0
+      img[:,:,2] *= 0
       x.append(img)
       y.append(label)
 
@@ -44,9 +43,8 @@ for f in os.listdir(test_path):
   img = img.resize(size)
   img = np.array(image.img_to_array(img))
   img *= 255.0/img.max()
-  # img[:,:,0] *= 0
-  # img[:,:,2] *= 0
-  img[0,:,0] = 0
+  img[:,:,0] *= 0
+  img[:,:,2] *= 0
   test.append(img)
   test_ids.append(f)
 
@@ -96,22 +94,23 @@ model.compile(
   metrics=['accuracy']
 )
 
-callbacks_list = [EarlyStopping(monitor='val_acc', patience=3, verbose=1)]
-
 model.summary()
 
-model.fit(X_train, y_train, epochs=1, validation_data=(X_test, y_test), verbose=1)
+batch_size = 64
+annealer = LearningRateScheduler(lambda x: 1e-3 * 0.9 ** x)
+earlystop = EarlyStopping(monitor='val_acc', patience=10)
+modelsave = ModelCheckpoint(filepath='model.h5', save_best_only=True, verbose=1)
 
+model.fit(X_train, y_train, batch_size=batch_size, epochs=200, validation_data=(X_test, y_test), verbose=1, callbacks=[annealer, earlystop, modelsave])
+
+# Predict with test data
 preds = model.predict(test, verbose=1)
 
+# Create and save submission file
 sub = pd.DataFrame(preds)
-
 sub.columns = one_hot.columns.values
-
 sub['species'] = sub.idxmax(axis=1)
-
 sub['file'] = test_ids
-
 print(sub.head(5))
 
 sub.to_csv('sub.csv', columns=['file', 'species'], index=False, float_format='%.3f')
