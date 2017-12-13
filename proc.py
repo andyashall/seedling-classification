@@ -1,6 +1,5 @@
 from keras.preprocessing import image
 from PIL import ImageFilter
-from skimage import filters
 import numpy as np
 
 img = image.load_img('./data/test/00c47e980.png')
@@ -14,12 +13,15 @@ img = np.array(image.img_to_array(img))
 # io.show()
 
 img = np.array(image.img_to_array(img))
+# Normalize
 img *= 255.0/img.max()
 
 print(img.shape)
 
-
+# if green is less than 80 then 0
 img[img[:, :, 1] < 80] = 0
+
+# if blue is more than 50 then 0
 img[img[:, :, 2] > 50] = 0
 
 # for c in range(img.shape[0]):

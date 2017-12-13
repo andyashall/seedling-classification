@@ -2,12 +2,23 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.preprocessing import image
-from PIL import ImageFilter
+from PIL import ImageFilter, ImageOps
 from keras.applications.xception import Xception
 from keras.models import Model
 from keras.layers import Dense, Dropout, Flatten
 from keras.callbacks import EarlyStopping, LearningRateScheduler, ModelCheckpoint
 import os
+
+size = (140, 140)
+
+def pre_proc(img):
+  img = img.resize(size)
+  # img = img.filter(ImageFilter.FIND_EDGES)
+  img = np.array(image.img_to_array(img))
+  img *= 255.0/img.max()
+  img[img[:, :, 1] < 100] = 0
+  img[img[:, :, 2] > 50] = 0
+  return img
 
 train_path = './data/train/'
 test_path = './data/test/'
@@ -24,29 +35,22 @@ labels = []
 for f in os.listdir('./data/train'):
   labels.append(f)
 
+# Try: mirror and flip training images
 for label in os.listdir(train_path):
   if os.path.isdir(train_path + label):
     for f in os.listdir(train_path + label):
       img = image.load_img(train_path + label + '/' + f)
-      # img = img.filter(ImageFilter.FIND_EDGES)
-      # image.ImageOps.mirror(img)
-      # red, green, blue = img.split()
-      img = img.resize(size)
-      img = np.array(image.img_to_array(img))
-      img *= 255.0/img.max()
-      img[img[:, :, 1] < 100] = 0
-      img[img[:, :, 2] > 50] = 0
+      imgm = ImageOps.mirror(img)
+      imgm = pre_proc(imgm)
+      img = pre_proc(img)
       x.append(img)
+      y.append(label)
+      x.append(imgm)
       y.append(label)
 
 for f in os.listdir(test_path):
   img = image.load_img(test_path + '/' + f)
-  # img = img.filter(ImageFilter.FIND_EDGES)
-  img = img.resize(size)
-  img = np.array(image.img_to_array(img))
-  img *= 255.0/img.max()
-  img[img[:, :, 1] < 100] = 0
-  img[img[:, :, 2] > 50] = 0
+  img = pre_proc(img)
   test.append(img)
   test_ids.append(f)
 
