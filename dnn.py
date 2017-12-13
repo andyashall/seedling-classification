@@ -9,30 +9,14 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.callbacks import EarlyStopping
 import os
 
-# Try removing red and blue from ieach image
-def just_green(arr):
-  arr = arr.astype('float')
-  for i in range(3):
-    arr[0,:,0] = 0
-  print(arr)
-  return arr
-
-def normalize(arr):
-  arr = arr.astype('float')
-  for i in range(3):
-    minval = arr[...,i].min()
-    maxval = arr[...,i].max()
-    if minval != maxval:
-      arr[...,i] -= minval
-      arr[...,i] *= (255.0/(maxval-minval))
-  return arr
-
 train_path = './data/train/'
-test_path = './data/ten/'
-size = (80, 80)
+test_path = './data/test/'
+size = (140, 140)
 
 x = []
 y = []
+test = []
+test_ids = []
 
 df_test = pd.read_csv('./data/sample_submission.csv')
 
@@ -44,12 +28,29 @@ for label in os.listdir(train_path):
   if os.path.isdir(train_path + label):
     for f in os.listdir(train_path + label):
       img = image.load_img(train_path + label + '/' + f)
+      # image.ImageOps.mirror(img)
+      # red, green, blue = img.split()
       img = img.resize(size)
       img = np.array(image.img_to_array(img))
       img *= 255.0/img.max()
+      # img[:,:,0] *= 0
+      # img[:,:,2] *= 0
       img[0,:,0] = 0
       x.append(img)
       y.append(label)
+
+for f in os.listdir(test_path):
+  img = image.load_img(test_path + '/' + f)
+  img = img.resize(size)
+  img = np.array(image.img_to_array(img))
+  img *= 255.0/img.max()
+  # img[:,:,0] *= 0
+  # img[:,:,2] *= 0
+  img[0,:,0] = 0
+  test.append(img)
+  test_ids.append(f)
+
+test = np.array(test, np.float32)
 
 print(labels)
 
@@ -63,14 +64,14 @@ y = np.array(one_hot, np.int_)
 print(x.shape)
 print(y.shape)
 
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=.3, random_state=1001)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=.1, random_state=1001)
 
 print(y_test.shape)
 
 base_model = Xception(
   weights = 'imagenet',
   include_top=False,
-  input_shape=(80, 80, 3)
+  input_shape=(140, 140, 3)
 )
 
 num_class = y.shape[1]
@@ -101,10 +102,16 @@ model.summary()
 
 model.fit(X_train, y_train, epochs=1, validation_data=(X_test, y_test), verbose=1)
 
-# sub = pd.DataFrame(preds)
+preds = model.predict(test, verbose=1)
 
-# sub.columns = one_hot.columns.values
+sub = pd.DataFrame(preds)
 
-# sub['id'] = test_ids
+sub.columns = one_hot.columns.values
 
-# print(sub.head(5))
+sub['species'] = sub.idxmax(axis=1)
+
+sub['file'] = test_ids
+
+print(sub.head(5))
+
+sub.to_csv('sub.csv', columns=['file', 'species'], index=False, float_format='%.3f')
