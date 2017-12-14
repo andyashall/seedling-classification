@@ -107,7 +107,7 @@ annealer = LearningRateScheduler(lambda x: 1e-3 * 0.9 ** x)
 earlystop = EarlyStopping(monitor='val_acc', patience=10)
 modelsave = ModelCheckpoint(filepath='model.h5', save_best_only=True, verbose=1)
 
-model.fit(X_train, y_train, batch_size=batch_size, epochs=200, validation_data=(X_test, y_test), verbose=1, callbacks=[annealer, earlystop, modelsave])
+model.fit(X_train, y_train, batch_size=batch_size, epochs=10, validation_data=(X_test, y_test), verbose=1, callbacks=[annealer, earlystop, modelsave])
 
 # Predict with test data
 preds = model.predict(test, verbose=1)
