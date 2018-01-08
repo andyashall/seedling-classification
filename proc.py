@@ -4,8 +4,6 @@ import numpy as np
 
 img = image.load_img('./data/test/0ad9e7dfb.png')
 
-# img = img.filter(ImageFilter.FIND_EDGES)
-
 img = np.array(image.img_to_array(img))
 
 # edges = filters.sobel(img)
@@ -13,6 +11,7 @@ img = np.array(image.img_to_array(img))
 # io.show()
 
 img = np.array(image.img_to_array(img))
+
 # Normalize
 img *= 255.0/img.max()
 
@@ -29,13 +28,15 @@ g2 = img[:, :, 1] > 100
 
 b2 = img[:, :, 2] > 100
 
-print(green.shape)
+red = img[:, :, 0] > 160
+
+print(red.shape)
 
 new = np.zeros(shape=green.shape, dtype=bool)
 
 for i in range(0, len(green)):
   for n in range(0, len(green)):
-    if (green[i,n] and blue[i,n]) or (g2[i,n] and b2[i,n]):
+    if (green[i,n] and blue[i,n]) or (g2[i,n] and b2[i,n]) or red[i,n]:
       new[i,n] = True
       print(new[i,n])
     else:
@@ -61,6 +62,8 @@ img[new] = 0
 #       img[c,r] = 0,0,0
 
 img = image.array_to_img(img)
+
+# img = img.filter(ImageFilter.FIND_EDGES)
 
 # img = img.filter(ImageFilter.FIND_EDGES)
 
