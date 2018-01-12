@@ -28,15 +28,15 @@ g2 = img[:, :, 1] > 100
 
 b2 = img[:, :, 2] > 100
 
-red = img[:, :, 0] > 160
+# red = img[:, :, 0] > 150
 
-print(red.shape)
+# print(red.shape)
 
 new = np.zeros(shape=green.shape, dtype=bool)
 
 for i in range(0, len(green)):
   for n in range(0, len(green)):
-    if (green[i,n] and blue[i,n]) or (g2[i,n] and b2[i,n]) or red[i,n]:
+    if (green[i,n] and blue[i,n]) or (g2[i,n] and b2[i,n]): # or red[i,n]:
       new[i,n] = True
       print(new[i,n])
     else:
