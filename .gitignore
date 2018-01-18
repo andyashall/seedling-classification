@@ -3,3 +3,6 @@ data/
 *.csv
 *.h5
 __pycache__/
+.ipynb_checkpoints
+logs/
+checkpoint/
